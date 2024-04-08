@@ -1,0 +1,39 @@
+{
+    "api_keys": [
+        "test_key"
+    ],
+    "auth_enforcement_enabled": false,
+    "host": "localhost",
+    "port": 32823,
+    "allowed_origins": [
+        "localhost"
+    ],
+    "default_provider": "OPENAI",
+    "provider_options": {
+        "OLLAMA": {
+            "base_url": "http://127.0.0.1:11434",
+            "model_settings": {
+                "mistral-instruct": {
+                    "model": "mistral:7b-instruct-q5_K_M",
+                    "num_ctx": 32768
+                }
+            }
+        },
+        "OPENAI": {
+            "base_url": "https://api.openai.com",
+            "api_key": ""
+        },
+        "MISTRAL": {
+            "base_url": "https://api.mistral.ai",
+            "api_key": ""
+        },
+        "GROQ": {
+            "base_url": "https://api.groq.com/openai",
+            "api_key": ""
+        },
+        "ANTHROPIC": {
+            "base_url": "https://api.anthropic.com",
+            "api_key": ""
+        }
+    }
+}
