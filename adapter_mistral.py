@@ -273,7 +273,7 @@ async def get_embeddings(request_headers, request_body):
                 continue
             data['embedding'] = oai_tools.encode_embeddings_to_base64(data['embedding'])
             converted_data.append(data)
-
+        response_content["data"] = converted_data
     openai_response = request_manager.ResponseStatus(response.status_code, response_content)
     openai_response.success = True
     return openai_response
