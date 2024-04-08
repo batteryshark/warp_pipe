@@ -66,6 +66,8 @@ async def list_models(request_headers, request_body):
     url,headers= await construct_request(request_headers, "/v1/models")
     openai_response = await request_manager.send_request("GET", url, headers)
     if openai_response.status_code == 200:
+        for i in range(0,len(openai_response.body)):
+            openai_response.body[i]["id"] = openai_response.body[i]["id"].split("/")[-1]
         openai_response.success = True
     return openai_response    
     
@@ -84,7 +86,7 @@ async def get_model(request_headers, request_body):
     list_of_models = list_response.body
     model_exists = False
     for model in list_of_models:
-        if request_body['model_id'] in model["id"]:
+        if request_body['model_id'] == model["id"]:
             created_time = model["created"]
             owner = model["organization"]
             model_exists = True

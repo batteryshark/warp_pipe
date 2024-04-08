@@ -59,6 +59,14 @@ For instance, Ollama's API lets you load a model but if the model file doesn't s
 * [x] JSON Mode (Not all models, workaround needed)
 * [x] Function Calling (Not all models, workaround needed)
 
+### LMStudio
+* [x] List Models
+* [x] Get Model Info
+* [x] Embeddings
+* [x] Chat Completions
+* [x] JSON Mode
+* [x] Function Calling (works on mixtral)
+
 ### Ollama
 
 * [x] List Models

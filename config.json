@@ -6,7 +6,8 @@
     "host": "localhost",
     "port": 32823,
     "allowed_origins": [
-        "localhost"
+        "*",
+        "tauri://localhost"
     ],
     "default_provider": "OPENAI",
     "provider_options": {
@@ -37,6 +38,10 @@
         },
         "TOGETHER": {
             "base_url": "https://api.together.xyz",
+            "api_key": ""
+        },
+        "LMSTUDIO": {
+            "base_url": "http://localhost:1234",
             "api_key": ""
         }
     }

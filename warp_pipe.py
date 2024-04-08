@@ -19,13 +19,17 @@ import adapter_groq
 import adapter_openai
 import adapter_mistral
 import adapter_anthropic
+import adapter_together
+import adapter_lmstudio
 
 ROUTE_DB = {
     "OLLAMA": adapter_ollama.process_request,
     "GROQ": adapter_groq.process_request,
     "OPENAI": adapter_openai.process_request,
     "MISTRAL": adapter_mistral.process_request,
-    "ANTHROPIC":adapter_anthropic.process_request
+    "ANTHROPIC":adapter_anthropic.process_request,
+    "TOGETHER": adapter_together.process_request,
+    "LMSTUDIO": adapter_lmstudio.process_request  
 }
 
 def get_adapter_route(provider):
@@ -166,4 +170,5 @@ async def get_model(request: Request, model_id: str, _=Depends(verify_api_key)):
 
 
 if __name__ == "__main__":
+
     uvicorn.run(app, host=config_manager.APP_CONFIG['host'], port=config_manager.APP_CONFIG['port'])
