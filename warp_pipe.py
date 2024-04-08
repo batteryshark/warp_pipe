@@ -81,7 +81,7 @@ async def get_header_info(request_headers):
         "llm_provider": request_headers.get("LLM_PROVIDER", config_manager.APP_CONFIG["default_provider"]).upper(),
     }    
     provider_auth = request_headers.get("Authorization", None)
-    if provider_auth is not None:
+    if provider_auth is not None and provider_auth.strip() != "Bearer":
         provider_auth = provider_auth.replace("Bearer ", "")
 
     if request_headers.get("PROVIDER_AUTH") is not None:
