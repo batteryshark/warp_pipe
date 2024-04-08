@@ -79,6 +79,15 @@ For instance, Ollama's API lets you load a model but if the model file doesn't s
 * [x] Function Calling
 
 
+### Together:
+* [x] List Models
+* [x] Get Model Info
+* [x] Embeddings
+* [x] JSON Mode (Not all models, workaround needed)
+* [x] Chat Completions
+* [x] Function Calling
+
+
 ## Developer Notes
 
 Lets-a-Go!
