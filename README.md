@@ -73,7 +73,7 @@ For instance, Ollama's API lets you load a model but if the model file doesn't s
 ### Anthropic:
 * [x] List Models
 * [x] Get Model Info
-* [x] Embeddings (No Embedding Models, workaround needed)
+* [ ] Embeddings (No Embedding Models, workaround needed)
 * [x] JSON Mode (Pretty Hacky)
 * [x] Chat Completions
 * [x] Function Calling
