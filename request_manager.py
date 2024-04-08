@@ -79,12 +79,12 @@ class ResponseStatus:
         self.body = body
 
 
-async def send_request(method, url, headers={}, body={}):    
+async def send_request(method, url, headers={}, body={},cert=None):    
     print(f"Sending Request to: {url}")    
     if not "Content-Type" in headers:
         headers["Content-Type"] = "application/json"
 
-    async with httpx.AsyncClient(timeout=None) as client:
+    async with httpx.AsyncClient(timeout=None,verify=cert) as client:
         
         if method == "GET":
             result = await client.get(url, headers=headers)
