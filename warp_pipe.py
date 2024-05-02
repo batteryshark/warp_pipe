@@ -57,7 +57,7 @@ async def stream_response_data(response_data):
 
     # Stream the JSON string in chunks.
     for i in range(0, len(json_str), chunk_size):
-        yield "data: " + json_str[i:i+chunk_size]
+        yield "data: " + json_str[i:i+chunk_size] + "\n\n"
         await asyncio.sleep(0.1)  # Simulate delay for streaming; adjust as necessary.
 
     # Optionally, signal the end of the stream if needed.
