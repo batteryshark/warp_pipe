@@ -1,6 +1,7 @@
 
 import json
 import asyncio
+import time
 
 import uvicorn
 from fastapi import FastAPI, HTTPException, Request, Depends
@@ -47,21 +48,76 @@ app.add_middleware(
     allow_headers=["*"],  # Or specify headers
 )
 
+def split_string_by_length(text, end):
+    return [text[i:i+end] for i in range(0,len(text),end)]
+
+# OpenAI has a very specific chunk setup it needs and various apis evaluate it differently
+# so it has to match EXACTLY... let's do that globally.
+def generate_response_chunks(response_data):
+    response_chunks = []
+    chat_id = response_data['id']
+    created_time = int(time.time())
+    selected_model = response_data['model']
+    system_fingerprint = "warp-pipe-001"
+    # TODO - Actually chunk this out so it streams all pretty.
+    response_message = response_data['choices'][0]['message']
+    response_content = response_message['content']
+
+    # First chunk has no content
+    first_response_message = response_message
+    first_response_message['content'] = ""
+
+    i_chunk = {
+        'id':chat_id,
+        'object':'chat.completion.chunk',
+        'created':created_time,
+        'model':selected_model,
+        'system_fingerprint':system_fingerprint,
+        'choices':[{
+            "index":0,
+            "delta":first_response_message,
+            "logprobs":None,
+            "finish_reason":None
+    }]}
+
+    response_chunks.append(json.dumps(i_chunk))
+
+    if response_content and len(response_content) > 1:
+        c_content = split_string_by_length(response_content,4096)
+        for cc in c_content:
+            c_chunk = {
+                'id':chat_id,
+                'object':'chat.completion.chunk',
+                'created':created_time,
+                'model':selected_model,
+                'system_fingerprint':system_fingerprint,
+                'choices':[{
+                    "index":0,
+                    "delta":{"content":cc},
+                    "logprobs":None,
+                    "finish_reason":None
+                    }
+                ]
+            }
+            response_chunks.append(json.dumps(c_chunk))
+
+    # Yup - it does this.
+    final_chunk = {"id":chat_id,"object":"chat.completion.chunk","created":created_time,"model":selected_model,"system_fingerprint":system_fingerprint,"choices":[{"index":0,"delta":{},"logprobs":None,"finish_reason":"stop"}]}
+    response_chunks.append(json.dumps(final_chunk))
+
+    # It also does this.
+    response_chunks.append("[DONE]")
+    return response_chunks
 
 async def stream_response_data(response_data):
-    # Convert the entire response object to a JSON string.
-    json_str = json.dumps(response_data)
-    
-    # Define the size of each chunk you want to stream. This is arbitrary and can be adjusted.
-    chunk_size = 1024  # Adjust based on your needs or testing.
+    response_chunks = generate_response_chunks(response_data)
+    print("Response Chunks")
+    for rc in response_chunks:
+        print(f"data: {rc}\n\n")
 
-    # Stream the JSON string in chunks.
-    for i in range(0, len(json_str), chunk_size):
-        yield "data: " + json_str[i:i+chunk_size] + "\n\n"
-        await asyncio.sleep(0.1)  # Simulate delay for streaming; adjust as necessary.
-
-    # Optionally, signal the end of the stream if needed.
-    yield ""  # Signal the end of the stream, if your client-side logic requires it.
+    for chunk in response_chunks:
+        yield f"data: {chunk}\n\n"
+        #await asyncio.sleep(0.1)
 
 
 # Dependency for API key authorization
@@ -79,15 +135,21 @@ async def verify_api_key(request: Request):
 async def get_header_info(request_headers):
     header_info = {
         "llm_provider": request_headers.get("LLM_PROVIDER", config_manager.APP_CONFIG["default_provider"]).upper(),
-    }    
-    provider_auth = request_headers.get("Authorization", None)
-    if provider_auth is not None and provider_auth.strip() != "Bearer":
-        provider_auth = provider_auth.replace("Bearer ", "")
+    }   
+    # Provider Auth Passthrough 
+    provider_auth = request_headers.get("PROVIDER_AUTH","")
+    if provider_auth == "":
+        provider_auth = request_headers.get("Authorization", None)
+        auth_skip_list = ["Bearer", "Bearer ", "Bearer sk-xxx"]
+        if provider_auth in auth_skip_list:
+            provider_auth = ""
+        else:
+            provider_auth = provider_auth.replace("Bearer ","")
+    
+    if provider_auth != "":
+        header_info["provider_auth"] = provider_auth
 
-    if request_headers.get("PROVIDER_AUTH") is not None:
-        provider_auth = request_headers.get("PROVIDER_AUTH")
-
-    header_info["provider_auth"] = provider_auth
+ 
     if "MAX_CONTEXT" in request_headers:
         header_info["max_context"] = request_headers["MAX_CONTEXT"]
     return header_info
@@ -114,7 +176,7 @@ async def handle_completions(request: Request,_=Depends(verify_api_key)):
 
     if stream_response:
         # Create a StreamingResponse from an async generator
-        return StreamingResponse(stream_response_data(response.body))
+        return StreamingResponse(stream_response_data(response.body),media_type='text/event-stream')
     else:
         # If not streaming, return the response normally
         return response.body
